@@ -18,9 +18,7 @@ namespace :endless do
         if (test "[ -f #{fetch(:endless_pid)} ]") && (test :kill, "-0 $( cat #{fetch(:endless_pid)} )")
           info 'Already Endless is running'
         else
-          with run_mode: fetch(:endless_env) do
-            execute "cd #{current_path} && rvm #{fetch(:rvm_ruby_version)} do ruby -e 'system(\"nohup #{fetch(:endless_start_cmd)} &\")'"
-          end
+          execute "export RUN_MODE=#{fetch(:endless_env)} && cd #{current_path} && rvm #{fetch(:rvm_ruby_version)} do ruby -e 'system(\"nohup #{fetch(:endless_start_cmd)} &\")'"
         end
       end
     end
@@ -45,9 +43,7 @@ namespace :endless do
     on roles(fetch(:endless_role)) do
       within current_path do
         if (test "[ -f #{fetch(:endless_pid)} ]") && (test :kill, "-0 $( cat #{fetch(:endless_pid)} )")
-          with run_mode: fetch(:endless_env) do
-            execute "cat #{fetch(:endless_pid)} | xargs kill -s #{fetch(:endless_safe_restart_signal)}"
-          end
+          execute "export RUN_MODE=#{fetch(:endless_env)} && cat #{fetch(:endless_pid)} | xargs kill -s #{fetch(:endless_safe_restart_signal)}"
         else
           invoke("endless:start")
         end
