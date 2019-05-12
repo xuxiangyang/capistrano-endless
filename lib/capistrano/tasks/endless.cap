@@ -2,7 +2,7 @@ namespace :load do
   task :defaults do
     set :endless_pid, -> { File.join(shared_path, 'tmp', 'pids', 'endless.pid') }
     set :endless_role, :app
-    set :endless_env, fetch(:run_mode, 'production')
+    set :endless_env, -> { fetch(:run_mode, 'production') }
     set :endless_binary, -> { fetch(:application) }
     set :endless_start_cmd, -> { "#{current_path}/#{fetch(:endless_binary)} >> #{shared_path}/log/stdout.log 2>> #{shared_path}/log/stderr.log" }
     set :endless_safe_restart_signal, "HUP"
@@ -45,7 +45,9 @@ namespace :endless do
     on roles(fetch(:endless_role)) do
       within current_path do
         if (test "[ -f #{fetch(:endless_pid)} ]") && (test :kill, "-0 $( cat #{fetch(:endless_pid)} )")
-          execute "cat #{fetch(:endless_pid)} | xargs kill -s #{fetch(:endless_safe_restart_signal)}"
+          with run_mode: fetch(:endless_env) do
+            execute "cat #{fetch(:endless_pid)} | xargs kill -s #{fetch(:endless_safe_restart_signal)}"
+          end
         else
           invoke("endless:start")
         end
