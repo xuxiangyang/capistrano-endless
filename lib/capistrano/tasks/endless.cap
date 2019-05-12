@@ -4,7 +4,7 @@ namespace :load do
     set :endless_role, :app
     set :endless_env, fetch(:run_mode, 'production')
     set :endless_binary, -> { fetch(:application) }
-    set :endless_start_cmd, -> { "nohup #{current_path}/#{fetch(:endless_binary)} >/dev/null 2>>#{shared_path}/log/stderr.log &" }
+    set :endless_start_cmd, -> { "nohup #{current_path}/#{fetch(:endless_binary)} >> #{shared_path}/log/out.log  2>> #{shared_path}/log/stderr.log &" }
     set :endless_safe_restart_signal, "HUP"
     set :endless_safe_stop_signal, "TERM"
   end
