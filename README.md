@@ -22,7 +22,27 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+# Capfile
+require "capistrano/setup"
+require "capistrano/deploy"
+require "capistrano/bundler"
+require "capistrano/rvm"
+require "capistrano/endless"
+```
+
+Configurable options, shown here with defaults:
+
+```ruby
+endless_pid =>  -> { File.join(shared_path, 'tmp', 'pids', 'endless.pid') }
+endless_role => :app
+endless_env => -> { fetch(:run_mode, 'production') }
+endless_binary => -> { fetch(:application) }
+endless_start_cmd => -> { "#{shared_path}/#{fetch(:endless_binary)} >> #{shared_path}/log/stdout.log 2>> #{shared_path}/log/stderr.log" }
+endless_safe_restart_signal => "HUP"
+endless_safe_stop_signal => "TERM"
+image_name => "golang:1.9"
+```
 
 ## Development
 
