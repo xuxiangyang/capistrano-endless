@@ -62,7 +62,7 @@ namespace :endless do
     on roles(fetch(:endless_role)) do
       within shared_path do
         if (test "[ -f #{fetch(:endless_pid)} ]") && (test :kill, "-0 $( cat #{fetch(:endless_pid)} )")
-          execute "cat #{fetch(:endless_pid)} | xargs kill -s KILL"
+          execute "ps aux | grep '#{shared_path}/#{fetch(:endless_binary)}' | grep -v grep  | awk '{print $2}' | xargs kill -9"
           invoke("endless:start")
         else
           invoke("endless:start")
