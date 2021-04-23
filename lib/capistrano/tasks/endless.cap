@@ -20,7 +20,8 @@ namespace :deploy do
   task :build_bin do
     on roles(:app) do
       within release_path do
-        execute("docker run --rm -e 'GOOS=linux' -e 'GOARCH=amd64' -v #{fetch(:release_path)}:/go/src/#{fetch(:application)} -w '/go/src/#{fetch(:application)}' #{fetch(:image_name)} go build #{fetch(:endless_binary)}.go")
+        bash_command = 'go env -w GOPROXY=https://goproxy.cn,direct && go env -w GOPRIVATE=gitlab.laoyouzhibo.com && git config --global url."git@gitlab.laoyouzhibo.com:".insteadOf "https://gitlab.laoyouzhibo.com/" && go get -d -v ./... && go build'
+        execute("docker run --rm -v #{fetch(:release_path)}:/usr/src/#{fetch(:application)} -v ~/.ssh:/root/.ssh:ro -w /usr/src/#{fetch(:application)} #{fetch(:image_name)} /bin/bash -c \"#{bash_command}\"")
       end
     end
   end
