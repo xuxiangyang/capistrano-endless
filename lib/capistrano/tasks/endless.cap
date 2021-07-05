@@ -17,6 +17,12 @@ namespace :load do
 end
 
 namespace :deploy do
+  task :pull_image do
+    on roles(:app) do
+      execute("docker pull #{fetch(:image_name)}")
+    end
+  end
+
   task :build_bin do
     on roles(:app) do
       within release_path do
