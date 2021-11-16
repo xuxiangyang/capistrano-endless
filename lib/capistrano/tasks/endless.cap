@@ -10,13 +10,12 @@ namespace :load do
     set :image_name, 'golang:1.9'
     append :linked_dirs, "log", "tmp"
     after "bundler:install", "deploy:build_bin"
-    after "deploy:build_bin", "deploy:copy_bin"
-    after "deploy:copy_bin", "deploy:copy_config"
-    after "deploy:copy_config", "endless:safe-restart"
+    after "deploy:symlink:release", "endless:safe-restart"
   end
 end
 
 namespace :deploy do
+  desc "pull docker image"
   task :pull_image do
     on roles(:app) do
       execute("docker pull #{fetch(:image_name)}")
@@ -28,23 +27,6 @@ namespace :deploy do
       within release_path do
         bash_command = 'go env -w GOPROXY=https://goproxy.cn,direct && go env -w GOPRIVATE=gitlab.laoyouzhibo.com && git config --global url."git@gitlab.laoyouzhibo.com:".insteadOf "https://gitlab.laoyouzhibo.com/" && go get -d -v ./... && go build'
         execute("docker run --rm -v #{fetch(:release_path)}:/usr/src/#{fetch(:application)} -v ~/.ssh:/root/.ssh:ro -w /usr/src/#{fetch(:application)} #{fetch(:image_name)} /bin/bash -c \"#{bash_command}\"")
-      end
-    end
-  end
-
-  task :copy_bin do
-    on roles(:app) do
-      within release_path do
-        execute("cp -f #{release_path}/#{fetch(:endless_binary)} #{shared_path}")
-      end
-    end
-  end
-
-  task :copy_config do
-    on roles(:app) do
-      within release_path do
-        execute("mkdir -p #{shared_path}/config")
-        execute("cp -r #{release_path}/config/* #{shared_path}/config")
       end
     end
   end
