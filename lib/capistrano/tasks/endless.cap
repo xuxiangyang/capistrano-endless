@@ -1,10 +1,10 @@
 namespace :load do
   task :defaults do
-    set :endless_pid, -> { File.join(shared_path, 'tmp', 'pids', 'endless.pid') }
+    set :endless_pid, -> { File.join(current_path, 'tmp', 'pids', 'endless.pid') }
     set :endless_role, :app
     set :endless_env, -> { fetch(:run_mode, 'production') }
     set :endless_binary, -> { fetch(:application) }
-    set :endless_start_cmd, -> { "#{shared_path}/#{fetch(:endless_binary)} >> #{shared_path}/log/stdout.log 2>> #{shared_path}/log/stderr.log" }
+    set :endless_start_cmd, -> { "#{current_path}/#{fetch(:endless_binary)} >> #{current_path}/log/stdout.log 2>> #{current_path}/log/stderr.log" }
     set :endless_safe_restart_signal, "HUP"
     set :endless_safe_stop_signal, "TERM"
     set :image_name, 'golang:1.9'
@@ -36,11 +36,11 @@ namespace :endless do
   desc "start Endless server"
   task :start do
     on roles(fetch(:endless_role)) do
-      within shared_path do
+      within current_path do
         if (test "[ -f #{fetch(:endless_pid)} ]") && (test :kill, "-0 $( cat #{fetch(:endless_pid)} )")
           info 'Already Endless is running'
         else
-          execute "export RUN_MODE=#{fetch(:endless_env)} && cd #{shared_path} && rvm #{fetch(:rvm_ruby_version)} do ruby -e 'system(\"nohup #{fetch(:endless_start_cmd)} &\")'"
+          execute "export RUN_MODE=#{fetch(:endless_env)} && cd #{current_path} && rvm #{fetch(:rvm_ruby_version)} do ruby -e 'system(\"nohup #{fetch(:endless_start_cmd)} &\")'"
         end
       end
     end
@@ -49,9 +49,9 @@ namespace :endless do
   desc "kill endless immediately (no graceful) then start new endless"
   task "harmful-restart" do
     on roles(fetch(:endless_role)) do
-      within shared_path do
+      within current_path do
         if (test "[ -f #{fetch(:endless_pid)} ]") && (test :kill, "-0 $( cat #{fetch(:endless_pid)} )")
-          execute "ps aux | grep '#{shared_path}/#{fetch(:endless_binary)}' | grep -v grep  | awk '{print $2}' | xargs kill -9"
+          execute "ps aux | grep '#{current_path}/#{fetch(:endless_binary)}' | grep -v grep  | awk '{print $2}' | xargs kill -9"
           invoke("endless:start")
         else
           invoke("endless:start")
@@ -63,9 +63,9 @@ namespace :endless do
   desc "kill endless immediately (no graceful)"
   task "harmful-stop" do
     on roles(fetch(:endless_role)) do
-      within shared_path do
+      within current_path do
         if (test "[ -f #{fetch(:endless_pid)} ]") && (test :kill, "-0 $( cat #{fetch(:endless_pid)} )")
-          execute "ps aux | grep '#{shared_path}/#{fetch(:endless_binary)}' | grep -v grep  | awk '{print $2}' | xargs kill -9"
+          execute "ps aux | grep '#{current_path}/#{fetch(:endless_binary)}' | grep -v grep  | awk '{print $2}' | xargs kill -9"
         end
       end
     end
@@ -74,7 +74,7 @@ namespace :endless do
   desc "graceful restart endless"
   task "safe-restart" do
     on roles(fetch(:endless_role)) do
-      within shared_path do
+      within current_path do
         if (test "[ -f #{fetch(:endless_pid)} ]") && (test :kill, "-0 $( cat #{fetch(:endless_pid)} )")
           execute "export RUN_MODE=#{fetch(:endless_env)} && cat #{fetch(:endless_pid)} | xargs kill -s #{fetch(:endless_safe_restart_signal)}"
         else
@@ -87,7 +87,7 @@ namespace :endless do
   desc "graceful shutdown endless"
   task "safe-stop" do
     on roles(fetch(:endless_role)) do
-      within shared_path do
+      within current_path do
         if (test "[ -f #{fetch(:endless_pid)} ]") && (test :kill, "-0 $( cat #{fetch(:endless_pid)} )")
           execute "cat #{fetch(:endless_pid)} | xargs kill -s #{fetch(:endless_safe_stop_signal)}"
         else
